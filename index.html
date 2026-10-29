@@ -1,0 +1,361 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Positron Effect</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: cloud-chamber hero with charged-particle tracks, then a ruled editorial grid. Amber = positive charge (accent), cyan = negative (secondary). Dark-first. */
+:root{
+  --bg:#080b12; --bg2:#0d121c; --card:#111826; --fg:#e8edf6; --mute:#8d9ab0; --line:#1f2a3d;
+  --pos:#ffb347; --neg:#4fd1e8; --pos-ink:#1a1100; --glow:rgba(255,179,71,.14);
+  --f-display:'Syne','Helvetica Neue',Arial,sans-serif;
+  --f-body:'Instrument Sans','Helvetica Neue',Arial,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --bg:#f3f5f9; --bg2:#e9edf4; --card:#ffffff; --fg:#0c1320; --mute:#56637a; --line:#d3dae6;
+  --pos:#b85d00; --neg:#0a7f95; --pos-ink:#ffffff; --glow:rgba(184,93,0,.10); color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#f3f5f9; --bg2:#e9edf4; --card:#ffffff; --fg:#0c1320; --mute:#56637a; --line:#d3dae6;
+  --pos:#b85d00; --neg:#0a7f95; --pos-ink:#ffffff; --glow:rgba(184,93,0,.10); color-scheme:light}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--f-body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;min-width:0}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.02;letter-spacing:-.02em;text-wrap:balance;margin:0}
+.mono{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+:focus-visible{outline:2px solid var(--pos);outline-offset:3px}
+
+/* nav */
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);margin:0 calc(-1*max(16px,env(safe-area-inset-left,0px)));padding:0 max(16px,env(safe-area-inset-left,0px))}
+.nav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:20px;height:64px}
+.brand{font-family:var(--f-display);font-weight:800;font-size:19px;display:flex;align-items:center;gap:10px;letter-spacing:-.01em}
+.brand i{width:22px;height:22px;border-radius:50%;border:2px solid var(--pos);position:relative;display:block}
+.brand i::after{content:"+";position:absolute;inset:0;display:grid;place-items:center;color:var(--pos);font:700 14px/1 var(--f-mono)}
+.links{display:flex;gap:26px;margin-left:auto;font-size:14px;color:var(--mute)}
+.links a:hover{color:var(--fg)}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:11px 20px;font:600 14px/1 var(--f-body);border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;transition:transform .2s,background .2s}
+.btn:hover{transform:translateY(-1px)}
+.btn.pri{background:var(--pos);color:var(--pos-ink);border-color:var(--pos)}
+.btn.sm{padding:9px 16px;font-size:13px}
+.tgl{width:38px;height:38px;padding:0;justify-content:center}
+@media(max-width:760px){.links{display:none}.nav-in{gap:10px}.nav-in .btn.ghost{display:none}.brand{margin-right:auto}}
+
+/* hero */
+.hero{position:relative;padding:72px 0 56px;min-height:560px}
+.hero canvas{position:absolute;inset:0 calc(-1*max(16px,env(safe-area-inset-left,0px)));width:calc(100% + 2*max(16px,env(safe-area-inset-left,0px)));height:100%;display:block;-webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent);mask-image:linear-gradient(to bottom,#000 70%,transparent)}
+.hero .in{position:relative;display:grid;gap:28px;max-width:860px}
+.hero h1{font-size:clamp(44px,8.4vw,104px);font-weight:800}
+.hero h1 em{font-style:normal;color:var(--pos)}
+.hero p.lead{font-size:clamp(17px,2vw,21px);color:var(--mute);max-width:600px;margin:0}
+.cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.cta .note{color:var(--mute);font-size:13px}
+.readout{display:flex;flex-wrap:wrap;gap:28px 44px;margin-top:20px;padding-top:22px;border-top:1px solid var(--line);position:relative}
+.readout div b{display:block;font:700 28px/1.1 var(--f-display);letter-spacing:-.01em}
+.readout div span{font-size:13px;color:var(--mute)}
+
+/* sections */
+section{padding:84px 0;border-top:1px solid var(--line)}
+.sh{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:24px 64px;margin-bottom:48px;align-items:end}
+.sh h2{font-size:clamp(32px,4.6vw,56px)}
+.sh p{color:var(--mute);margin:0;max-width:520px}
+@media(max-width:820px){.sh{grid-template-columns:1fr}}
+
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.three>div{padding:32px 28px 36px;background:var(--bg2);display:grid;gap:14px;align-content:start}
+.three>div+div{border-left:1px solid var(--line)}
+.three h3{font-size:24px}
+.three ul{margin:0;padding:0;list-style:none;display:grid;gap:10px;color:var(--mute);font-size:15px}
+.three li::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--neg);margin-right:10px}
+.three>div:nth-child(2) li::before{background:var(--pos)}
+@media(max-width:820px){.three{grid-template-columns:1fr}.three>div+div{border-left:0;border-top:1px solid var(--line)}}
+
+/* process: a true sequence */
+.steps{display:grid;gap:0;position:relative}
+.step{display:grid;grid-template-columns:96px minmax(0,1fr) minmax(0,1.2fr);gap:12px 32px;padding:26px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.step:first-child{border-top:1px solid var(--line)}
+.step .t{font-family:var(--f-mono);font-size:12px;color:var(--pos);letter-spacing:.06em}
+.step h3{font-size:24px}
+.step p{margin:0;color:var(--mute)}
+@media(max-width:760px){.step{grid-template-columns:1fr;gap:6px}}
+
+/* studio demo */
+.studio{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px}
+@media(max-width:900px){.studio{grid-template-columns:1fr}}
+.pane{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;display:grid;gap:14px;align-content:start;min-width:0}
+.pane-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+textarea{width:100%;min-height:210px;resize:vertical;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:14px;font:400 15px/1.55 var(--f-body)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--mute);font:500 13px var(--f-body);padding:7px 14px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.scenes{display:grid;gap:8px;max-height:392px;overflow:auto;padding-right:4px}
+.scene{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.scene .th{width:44px;height:44px;border-radius:8px;position:relative;overflow:hidden}
+.scene p{margin:0;font-size:14px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.scene small{font-family:var(--f-mono);font-size:11px;color:var(--mute);display:block;margin-top:2px;text-transform:uppercase;letter-spacing:.06em}
+.scene .d{font-family:var(--f-mono);font-size:13px;font-variant-numeric:tabular-nums}
+.bar{height:34px;border-radius:8px;display:flex;overflow:hidden;background:var(--bg);border:1px solid var(--line)}
+.bar i{display:block;height:100%;border-right:1px solid var(--bg)}
+.sum{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 20px;font-size:14px;color:var(--mute)}
+.sum b{color:var(--fg);font-variant-numeric:tabular-nums}
+.empty{color:var(--mute);font-size:14px;padding:30px 0;text-align:center}
+
+/* tools */
+.tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media(max-width:900px){.tools{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.tools{grid-template-columns:1fr}}
+.tool{border:1px solid var(--line);border-radius:16px;padding:22px;background:var(--bg2);display:grid;gap:10px;align-content:start;transition:border-color .2s,background .2s}
+.tool:hover{border-color:var(--pos);background:var(--card)}
+.tool h3{font-size:20px}
+.tool p{margin:0;color:var(--mute);font-size:14.5px}
+.tool svg{width:34px;height:34px;stroke:var(--pos);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+/* plans */
+.plans{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media(max-width:1000px){.plans{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.plans{grid-template-columns:1fr}}
+.plan{border:1px solid var(--line);border-radius:18px;padding:24px;background:var(--bg2);display:grid;gap:14px;align-content:start;position:relative}
+.plan.hi{border-color:var(--pos);background:var(--card);box-shadow:0 0 0 1px var(--pos),0 24px 60px -28px var(--glow)}
+.plan.fit{outline:2px solid var(--neg);outline-offset:3px}
+.plan h3{font-size:22px}
+.plan .pr{font:700 38px/1 var(--f-display);letter-spacing:-.02em}
+.plan .pr small{font:400 14px var(--f-body);color:var(--mute);letter-spacing:0}
+.plan ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:14px;color:var(--mute)}
+.plan li{padding-left:18px;position:relative}
+.plan li::before{content:"";position:absolute;left:0;top:.62em;width:8px;height:1.5px;background:var(--pos)}
+.tag{position:absolute;top:-11px;right:18px;background:var(--pos);color:var(--pos-ink);font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
+
+/* faq */
+details{border-bottom:1px solid var(--line);padding:20px 0}
+details:first-of-type{border-top:1px solid var(--line)}
+summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;font:600 18px var(--f-body)}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font:400 22px/1 var(--f-mono);color:var(--pos);transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{margin:12px 0 0;color:var(--mute);max-width:720px}
+
+.final{text-align:left;display:grid;gap:22px;justify-items:start}
+.final h2{font-size:clamp(38px,6.4vw,84px);max-width:900px}
+footer{border-top:1px solid var(--line);padding:40px 0 56px;display:grid;gap:30px}
+.fcols{display:grid;grid-template-columns:1.4fr repeat(3,minmax(0,1fr));gap:28px}
+@media(max-width:760px){.fcols{grid-template-columns:repeat(2,minmax(0,1fr))}.fcols>div:first-child{grid-column:1/-1}}
+.fcols h4{margin:0 0 12px;font:500 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.fcols a{display:block;font-size:14px;color:var(--fg);padding:3px 0;opacity:.85}
+.fcols a:hover{opacity:1;color:var(--pos)}
+.disc{font-size:12.5px;color:var(--mute);max-width:760px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<div class="wrap">
+<nav><div class="nav-in">
+  <a class="brand" href="#top"><i></i>Positron Effect</a>
+  <div class="links"><a href="#studio">Studio</a><a href="#process">Process</a><a href="#tools">Tools</a><a href="#plans">Plans</a><a href="#faq">FAQ</a></div>
+  <a class="btn ghost sm" href="#plans">Sign in</a>
+  <button class="btn tgl sm" id="theme" aria-label="Toggle light and dark theme" type="button">◐</button>
+  <a class="btn pri sm" href="#studio">Start a film</a>
+</div></nav>
+
+<header class="hero" id="top">
+  <canvas id="tracks" aria-hidden="true"></canvas>
+  <div class="in">
+    <span class="mono">Long-form AI video · up to 45 min</span>
+    <h1>One script.<br>An entire <em>film</em>.</h1>
+    <p class="lead">Positron Effect turns a written script into a finished video: scenes, narration, score and thumbnail, generated together so the characters and look stay consistent from the first minute to the last.</p>
+    <div class="cta">
+      <a class="btn pri" href="#studio">Try the storyboard studio →</a>
+      <a class="btn" href="#process">See how it works</a>
+      <span class="note">First 45 seconds free. No card.</span>
+    </div>
+    <div class="readout">
+      <div><b>45 min</b><span>longest single film</span></div>
+      <div><b>6 styles</b><span>live action to line art</span></div>
+      <div><b>40+ voices</b><span>with pace and tone control</span></div>
+      <div><b>1 timeline</b><span>for every layer</span></div>
+    </div>
+  </div>
+</header>
+
+<section id="why">
+  <div class="sh"><h2>Built for films that run long.</h2><p>Most generators lose the thread after a few seconds. Positron Effect plans the whole piece first, then renders each scene against that plan.</p></div>
+  <div class="three">
+    <div><span class="mono">Speed</span><h3>A first cut in minutes</h3><ul><li>Script, scenes and narration drafted from a topic</li><li>Change anything by typing a sentence</li><li>No timeline skills needed</li></ul></div>
+    <div><span class="mono">Continuity</span><h3>Characters that stay put</h3><ul><li>Same face, outfit and palette across scenes</li><li>Slow camera moves that suit explainers</li><li>Made for storytellers, teachers and channel owners</li></ul></div>
+    <div><span class="mono">Scope</span><h3>Every layer in one place</h3><ul><li>Visuals, voice, score and thumbnail together</li><li>Export for YouTube, Shorts, Reels and LinkedIn</li><li>One workspace from idea to upload</li></ul></div>
+  </div>
+</section>
+
+<section id="studio">
+  <div class="sh"><h2>Paste a script. Watch it become scenes.</h2><p>This is a working preview of the planner. It splits your text into scenes, estimates narration time at a natural pace, and shows which plan fits the result.</p></div>
+  <div class="studio">
+    <div class="pane">
+      <div class="pane-h"><span class="mono">Script</span><span class="mono" id="wc">0 words</span></div>
+      <textarea id="script" aria-label="Script">Every particle has a mirror image. In 1932, Carl Anderson photographed a track in a cloud chamber that curved the wrong way. It was an electron with a positive charge. Physicists named it the positron. When a positron meets an electron, both vanish. Their mass becomes two gamma rays of 511 kiloelectronvolts each. Hospitals now use this exact flash to image the living brain. The universe, it turns out, keeps a careful ledger of everything it cancels.</textarea>
+      <div class="row">
+        <div class="seg" role="group" aria-label="Narration pace" id="pace">
+          <button type="button" data-v="2.2" aria-pressed="false">Slow</button>
+          <button type="button" data-v="2.6" aria-pressed="true">Natural</button>
+          <button type="button" data-v="3.1" aria-pressed="false">Brisk</button>
+        </div>
+        <button class="btn pri sm" id="go" type="button">Build storyboard</button>
+      </div>
+    </div>
+    <div class="pane">
+      <div class="pane-h"><span class="mono">Storyboard</span><span class="mono" id="sc">0 scenes</span></div>
+      <div class="bar" id="bar" aria-hidden="true"></div>
+      <div class="scenes" id="scenes"><div class="empty">Press “Build storyboard”.</div></div>
+      <div class="sum"><span>Runtime <b id="rt">0:00</b></span><span>Fits plan <b id="fit">–</b></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="process">
+  <div class="sh"><h2>Five stages, in order.</h2><p>Each stage hands a locked result to the next, so late edits never undo early decisions.</p></div>
+  <div class="steps">
+    <div class="step"><span class="t">STAGE 1 · IDEA</span><h3>Bring the script</h3><p>Paste your own text or give a topic and let the writer draft it. Choose a visual style and a platform format.</p></div>
+    <div class="step"><span class="t">STAGE 2 · CAST</span><h3>Pick the narrator and characters</h3><p>Choose a voice and a look, or upload a reference photo on higher plans. The cast is fixed for the whole film.</p></div>
+    <div class="step"><span class="t">STAGE 3 · SCENES</span><h3>Shape the storyboard</h3><p>Reorder, split, merge or delete scenes until the pacing feels right. Narration timing updates as you go.</p></div>
+    <div class="step"><span class="t">STAGE 4 · POLISH</span><h3>Refine on the timeline</h3><p>Swap a shot, retime a line, change the score or redo the thumbnail without regenerating the rest.</p></div>
+    <div class="step"><span class="t">STAGE 5 · RELEASE</span><h3>Export and publish</h3><p>Download in the right shape for each platform and label it as AI-generated in one click.</p></div>
+  </div>
+</section>
+
+<section id="tools">
+  <div class="sh"><h2>The whole bench, one login.</h2><p>Use the full film builder, or pick a single tool when you only need one piece.</p></div>
+  <div class="tools">
+    <div class="tool"><svg viewBox="0 0 32 32"><rect x="3" y="7" width="26" height="18" rx="3"/><path d="M13 12l7 4-7 4z"/></svg><h3>Film Builder</h3><p>Script to finished video, up to 45 minutes.</p></div>
+    <div class="tool"><svg viewBox="0 0 32 32"><rect x="9" y="3" width="14" height="26" rx="3"/><path d="M14 13l5 3-5 3z"/></svg><h3>Clip Maker</h3><p>Vertical shorts in seconds, captions included.</p></div>
+    <div class="tool"><svg viewBox="0 0 32 32"><path d="M4 16h3M9 11v10M14 7v18M19 11v10M24 14v4M28 16h0"/></svg><h3>Voice Studio</h3><p>Natural narration with control over pace, tone and emphasis.</p></div>
+    <div class="tool"><svg viewBox="0 0 32 32"><path d="M12 24V8l14-3v16"/><circle cx="9" cy="24" r="3"/><circle cx="23" cy="21" r="3"/></svg><h3>Score Maker</h3><p>Original background music and effects in any mood.</p></div>
+    <div class="tool"><svg viewBox="0 0 32 32"><rect x="3" y="6" width="26" height="20" rx="3"/><circle cx="11" cy="13" r="2.5"/><path d="M5 24l8-7 5 4 4-3 6 6"/></svg><h3>Thumbnail Lab</h3><p>Covers designed to earn the click, sized per platform.</p></div>
+    <div class="tool"><svg viewBox="0 0 32 32"><path d="M5 8h22M5 16h14M5 24h18"/><circle cx="25" cy="22" r="3"/></svg><h3>Scene Editor</h3><p>Edit any scene by describing the change in plain words.</p></div>
+  </div>
+</section>
+
+<section id="plans">
+  <div class="sh"><h2>Pick the length you need.</h2><p>Plans scale with runtime and creative control. Preview pricing shown; final rates are set at launch.</p></div>
+  <div class="plans" id="planGrid">
+    <div class="plan" data-max="0.75"><h3>Spark</h3><div class="pr">$0</div><span class="mono">one-time credit</span><ul><li>Films up to 45 seconds</li><li>Full voice library</li><li>Watermarked export</li></ul><a class="btn" href="#studio">Start free</a></div>
+    <div class="plan" data-max="8"><h3>Orbit</h3><div class="pr">$19<small>/mo</small></div><span class="mono">8 min films</span><ul><li>No watermark</li><li>All visual styles</li><li>Thumbnail Lab</li></ul><a class="btn" href="#studio">Choose Orbit</a></div>
+    <div class="plan hi" data-max="20"><span class="tag">Most chosen</span><h3>Collider</h3><div class="pr">$49<small>/mo</small></div><span class="mono">20 min films</span><ul><li>Photo-based characters</li><li>Voice tone and pace control</li><li>Priority rendering</li></ul><a class="btn pri" href="#studio">Choose Collider</a></div>
+    <div class="plan" data-max="45"><h3>Synchrotron</h3><div class="pr">$119<small>/mo</small></div><span class="mono">45 min films</span><ul><li>Largest monthly allowance</li><li>Team workspace</li><li>Early access to new models</li></ul><a class="btn" href="#studio">Choose Synchrotron</a></div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="sh"><h2>Questions, answered.</h2><p>Anything missing? Ask in the community channel.</p></div>
+  <details open><summary>What is Positron Effect?</summary><p>A platform that produces long videos from a script. It writes or accepts the script, generates scenes and narration, adds a score and builds a thumbnail, then lets you edit everything from one timeline.</p></details>
+  <details><summary>What kinds of videos can I make?</summary><p>Explainers, stories, lessons and marketing pieces in photoreal, cinematic, anime, cartoon, painted and line-art styles, formatted for YouTube, TikTok, Instagram and LinkedIn.</p></details>
+  <details><summary>How long can a film be?</summary><p>From 30 seconds up to 45 minutes depending on plan. The free credit covers a 45 second film.</p></details>
+  <details><summary>Do I need editing experience?</summary><p>No. Describe a change in a sentence and the scene updates. The timeline is there when you want finer control.</p></details>
+  <details><summary>Is the output labelled as AI?</summary><p>Voices, visuals and characters are synthetic. Export includes an optional label so you can disclose it wherever you publish.</p></details>
+</section>
+
+<section>
+  <div class="final">
+    <span class="mono">Ready when you are</span>
+    <h2>Make the film you keep describing.</h2>
+    <a class="btn pri" href="#studio">Start creating →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="fcols">
+    <div><a class="brand" href="#top"><i></i>Positron Effect</a><p class="disc" style="margin-top:12px">Long-form video from a single script.</p></div>
+    <div><h4>Create</h4><a href="#tools">Film Builder</a><a href="#tools">Clip Maker</a><a href="#tools">Voice Studio</a><a href="#tools">Score Maker</a></div>
+    <div><h4>Learn</h4><a href="#process">How it works</a><a href="#faq">FAQ</a><a href="#studio">Storyboard demo</a></div>
+    <div><h4>Company</h4><a href="#plans">Plans</a><a href="#top">About</a><a href="#top">Terms</a><a href="#top">Privacy</a></div>
+  </div>
+  <p class="disc">All voices, visuals and characters made on this platform are AI-generated and not tied to any real person. Please label published work as synthetic or AI-generated. © 2026 Positron Effect.</p>
+</footer>
+</div>
+
+<script>
+(function(){
+  /* theme toggle */
+  var root=document.documentElement,btn=document.getElementById('theme');
+  function isLight(){var t=root.getAttribute('data-theme');if(t)return t==='light';return matchMedia('(prefers-color-scheme: light)').matches}
+  btn.addEventListener('click',function(){root.setAttribute('data-theme',isLight()?'dark':'light');draw(true)});
+
+  /* cloud-chamber tracks */
+  var cv=document.getElementById('tracks'),cx=cv.getContext('2d'),W=0,H=0,dpr=Math.min(devicePixelRatio||1,2),tracks=[];
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function css(n){return getComputedStyle(root).getPropertyValue(n).trim()}
+  function size(){var r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0)}
+  function spawn(){
+    var x=W*(0.35+Math.random()*0.65),y=H*(0.08+Math.random()*0.8),a=Math.random()*Math.PI*2,r=40+Math.random()*120,sp=2.2+Math.random()*1.6;
+    [1,-1].forEach(function(s){tracks.push({x:x,y:y,a:a+(s>0?0:Math.PI),r:r,s:s,sp:sp,pts:[[x,y]],age:0,max:260+Math.random()*180})});
+  }
+  function step(t){
+    var d=t.s;t.a+=d*t.sp/t.r;t.r*=0.9965;t.x+=Math.cos(t.a)*t.sp;t.y+=Math.sin(t.a)*t.sp;t.pts.push([t.x,t.y]);t.age++;
+    if(t.pts.length>200)t.pts.shift();
+  }
+  function paint(){
+    cx.clearRect(0,0,W,H);
+    var pos=css('--pos'),neg=css('--neg');
+    tracks.forEach(function(t){
+      var n=t.pts.length,fade=t.age>t.max-60?Math.max(0,(t.max-t.age)/60):1;
+      cx.lineWidth=1.4;cx.strokeStyle=t.s>0?pos:neg;
+      for(var i=1;i<n;i++){cx.globalAlpha=(i/n)*0.75*fade;cx.beginPath();cx.moveTo(t.pts[i-1][0],t.pts[i-1][1]);cx.lineTo(t.pts[i][0],t.pts[i][1]);cx.stroke()}
+      if(n>1&&fade>0){var h=t.pts[n-1];cx.globalAlpha=fade;cx.fillStyle=t.s>0?pos:neg;cx.beginPath();cx.arc(h[0],h[1],2.2,0,7);cx.fill()}
+    });
+    cx.globalAlpha=1;
+  }
+  function draw(){paint()}
+  function frame(){
+    if(Math.random()<0.035&&tracks.length<26)spawn();
+    tracks.forEach(step);tracks=tracks.filter(function(t){return t.age<t.max});
+    paint();requestAnimationFrame(frame);
+  }
+  size();
+  if(reduce){for(var i=0;i<9;i++)spawn();tracks.forEach(function(t){for(var k=0;k<170;k++)step(t)});paint()}
+  else{for(var j=0;j<5;j++)spawn();tracks.forEach(function(t){var n=40+Math.random()*120;for(var k=0;k<n;k++)step(t)});paint();requestAnimationFrame(frame)}
+  addEventListener('resize',function(){size();paint()});
+
+  /* storyboard planner */
+  var pace=2.6,shots=['Wide','Close-up','Tracking','Aerial','Macro','Over-shoulder'];
+  var hues=[200,38,170,28,215,50];
+  var scenes=document.getElementById('scenes'),bar=document.getElementById('bar'),ta=document.getElementById('script');
+  function fmt(s){var m=Math.floor(s/60),r=Math.round(s%60);return m+':'+(r<10?'0':'')+r}
+  function words(s){var m=s.trim().match(/\S+/g);return m?m.length:0}
+  function build(){
+    var txt=ta.value.trim(),parts=txt?txt.split(/(?<=[.!?])\s+/).filter(Boolean):[];
+    // merge very short sentences into the next scene
+    var out=[],buf='';
+    parts.forEach(function(p){buf=buf?buf+' '+p:p;if(words(buf)>=7){out.push(buf);buf=''}});
+    if(buf){if(out.length)out[out.length-1]+=' '+buf;else out.push(buf)}
+    scenes.innerHTML='';bar.innerHTML='';
+    if(!out.length){scenes.innerHTML='<div class="empty">Add a script, then build the storyboard.</div>';document.getElementById('sc').textContent='0 scenes';document.getElementById('rt').textContent='0:00';mark(0);return}
+    var total=0,ds=out.map(function(s){var d=Math.max(3,Math.round(words(s)/pace));total+=d;return d});
+    out.forEach(function(s,i){
+      var h=hues[i%hues.length],el=document.createElement('div');el.className='scene';
+      el.innerHTML='<div class="th" style="background:linear-gradient(135deg,hsl('+h+' 70% 45%),hsl('+(h+50)+' 60% 18%))"></div><div><p></p><small>Scene '+(i+1)+' · '+shots[i%shots.length]+'</small></div><span class="d">'+fmt(ds[i])+'</span>';
+      el.querySelector('p').textContent=s;scenes.appendChild(el);
+      var b=document.createElement('i');b.style.width=(ds[i]/total*100)+'%';b.style.background='hsl('+h+' 70% 50%)';bar.appendChild(b);
+    });
+    document.getElementById('sc').textContent=out.length+' scene'+(out.length>1?'s':'');
+    document.getElementById('rt').textContent=fmt(total);
+    mark(total/60);
+  }
+  function mark(min){
+    var f='–',ps=document.querySelectorAll('#planGrid .plan'),hit=null;
+    ps.forEach(function(p){p.classList.remove('fit')});
+    if(min>0){ps.forEach(function(p){if(!hit&&parseFloat(p.dataset.max)>=min)hit=p});
+      if(hit){hit.classList.add('fit');f=hit.querySelector('h3').textContent}else f='Over 45 min'}
+    document.getElementById('fit').textContent=f;
+  }
+  function wc(){var n=words(ta.value);document.getElementById('wc').textContent=n+' word'+(n===1?'':'s')}
+  document.getElementById('go').addEventListener('click',build);
+  ta.addEventListener('input',wc);
+  document.getElementById('pace').addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b)return;pace=parseFloat(b.dataset.v);
+    this.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});build();
+  });
+  wc();build();
+})();
+</script>
+
+</body></html>
